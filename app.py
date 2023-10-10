@@ -11,12 +11,16 @@ def removeLog():
     logging.getLogger('werkzeug').setLevel(logging.ERROR)
     sys.modules['flask.cli'].show_server_banner = lambda *x: None
 
+# create a function that prints message in given hex color in the terminal
+def printColor(message, color):
+    return (f"\033[{color}m{message}\033[00m")
+
+
 load_dotenv()
 
 app = Flask(__name__)
 
-with open('db.json', 'r') as f:
-    data = json.load(f)
+
 
 
 
@@ -26,6 +30,21 @@ with open('db.json', 'r') as f:
 # logging.basicConfig(level=logging.INFO, format=log_format)
 print(f"Running JSON-SERVER on port {os.getenv('PORT')}")
 
+with open('db.json', 'r') as f:
+    data = json.load(f)
+    # print the possible routes, for GET, POST, PUT, DELETE
+    for key in data:
+        # add a separator between each resource
+        print(f"\n\033[1m\033[4m{key.upper()}\033[00m")
+        # GET with blue
+        print(f"{printColor('GET', '34')} /{key}")
+        # POST with green
+        print(f"{printColor('GET', '34')} /{key}/<id>")
+        print(f"{printColor('POST', '32')} /{key}")
+        # PUT with yellow
+        print(f"{printColor('PUT', '33')} /{key}")
+        # print delete with red
+        print(f"{printColor('DELETE', '31')} /{key}")
 
 @app.route('/<resource>', methods=['GET'])
 def get_resource(resource):
@@ -40,7 +59,8 @@ def get_resource_by_id(resource, id):
         for item in data[resource]:
             if item['id'] == int(id):
                 return jsonify(item)
-        return jsonify({"error": "Resource not found"}), 404
+        # Resource - use the param value not found
+        return jsonify({"error": f"{resource} not found"}), 404
     else:
         return jsonify({"error": "Resource not found"}), 404
 
