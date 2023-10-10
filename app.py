@@ -15,6 +15,8 @@ def removeLog():
 def printColor(message, color):
     return (f"\033[{color}m{message}\033[00m")
 
+# create HTTP Status enum
+
 
 load_dotenv()
 
@@ -46,6 +48,10 @@ with open('db.json', 'r') as f:
         # print delete with red
         print(f"{printColor('DELETE', '31')} /{key}")
 
+
+
+
+
 @app.route('/<resource>', methods=['GET'])
 def get_resource(resource):
     if resource in data:
@@ -54,20 +60,37 @@ def get_resource(resource):
         return jsonify({"error": "Resource not found"}), 404
 
 @app.route('/<resource>/<id>', methods=['GET'])
-def get_resource_by_id(resource, id):
+def get_resource_by_id_with_children(resource, id):
     if resource in data:
         for item in data[resource]:
             if item['id'] == int(id):
-                return jsonify(item)
+                print(request.args.get('child'))
+                if 'child' in request.args:
+                    child = request.args.get('child')
+                    if child in data:
+                        children = []
+                        for child_item in data[child]:
+                            if child_item['postId'] == int(id):
+                                children.append(child_item)
+                        return jsonify(children)
+                    else:
+                        return jsonify({"error": f"{child} not found"}), 404
+                else:
+                    return jsonify(item)
         # Resource - use the param value not found
         return jsonify({"error": f"{resource} not found"}), 404
     else:
-        return jsonify({"error": "Resource not found"}), 404
+        return jsonify({"error": f"{resource} not found"}), 404
+
+# To include children resources, add child resource name after parent resource name and id
+# GET /posts/1?child=comments
+# @app.route('/<resource>/<id>', methods=['GET'])
+
 
 @app.route('/<resource>', methods=['POST'])
 def create_resource(resource):
     if resource in data:
-        return jsonify({"error": "Resource already exists"}), 400
+        return jsonify({"error": f"{resource} already exists"}), 400
     else:
         data[resource] = request.json
         with open('data.json', 'w') as f:
@@ -94,13 +117,11 @@ def delete_resource(resource):
     else:
         return jsonify({"error": "Resource not found"}), 404
 
-# To include children resources, add child resource name after parent resource name and id
-# GET /posts/1?child=comments
+
 
 
 if __name__ == "__main__":
     # use .env file to get port
     # app.run(port=os.getenv('PORT'), debug=False)
-    app.debug = True
     http_server = WSGIServer(('', int(os.getenv('PORT'))), app)
     http_server.serve_forever()
