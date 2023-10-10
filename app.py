@@ -1,9 +1,11 @@
-from flask import Flask
+from flask import Flask, jsonify, request
+import json
 import logging
 import sys
 from flask.logging import default_handler
 import os
 from dotenv import load_dotenv
+from gevent.pywsgi import WSGIServer
 
 def removeLog():
     logging.getLogger('werkzeug').setLevel(logging.ERROR)
@@ -13,25 +15,72 @@ load_dotenv()
 
 app = Flask(__name__)
 
-removeLog()
+with open('db.json', 'r') as f:
+    data = json.load(f)
+
 
 
 # log_format = "%(asctime)s - %(levelname)s - %(message)s"
-log_format = "%(asctime)s - %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_format)
-app.logger.info(f"Running JSON-SERVER on port {os.getenv('PORT')}")
-
-# remove `* Debug mode: off` from console
-
+# removeLog()
+# log_format = "%(message)s"
+# logging.basicConfig(level=logging.INFO, format=log_format)
+print(f"Running JSON-SERVER on port {os.getenv('PORT')}")
 
 
+@app.route('/<resource>', methods=['GET'])
+def get_resource(resource):
+    if resource in data:
+        return jsonify(data[resource])
+    else:
+        return jsonify({"error": "Resource not found"}), 404
 
-@app.route("/hello")
-def hello():
-    app.logger.info("GET /hello")
-    return {"message": "Hello, World!"}
+@app.route('/<resource>/<id>', methods=['GET'])
+def get_resource_by_id(resource, id):
+    if resource in data:
+        for item in data[resource]:
+            if item['id'] == int(id):
+                return jsonify(item)
+        return jsonify({"error": "Resource not found"}), 404
+    else:
+        return jsonify({"error": "Resource not found"}), 404
+
+@app.route('/<resource>', methods=['POST'])
+def create_resource(resource):
+    if resource in data:
+        return jsonify({"error": "Resource already exists"}), 400
+    else:
+        data[resource] = request.json
+        with open('data.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        return jsonify(data[resource]), 201
+
+@app.route('/<resource>', methods=['PUT'])
+def update_resource(resource):
+    if resource in data:
+        data[resource] = request.json
+        with open('data.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        return jsonify(data[resource])
+    else:
+        return jsonify({"error": "Resource not found"}), 404
+
+@app.route('/<resource>', methods=['DELETE'])
+def delete_resource(resource):
+    if resource in data:
+        del data[resource]
+        with open('data.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        return jsonify({"message": "Resource deleted"})
+    else:
+        return jsonify({"error": "Resource not found"}), 404
+
+# To include children resources, add child resource name after parent resource name and id
+# GET /posts/1?child=comments
 
 
 if __name__ == "__main__":
     # use .env file to get port
-    app.run(port=os.getenv('PORT'))
+    # app.run(port=os.getenv('PORT'), debug=False)
+    app.debug = True
+    http_server = WSGIServer(('', int(os.getenv('PORT'))), app)
+    http_server.serve_forever()
