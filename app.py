@@ -27,11 +27,11 @@ app = Flask(__name__)
 
 print(f"Running JSON-SERVER on port {os.getenv('PORT')}")
 
-with open('db.json', 'r') as f:
-    data = json.load(f)
-    # print the possible routes, for GET, POST, PUT, DELETE
+try:
+    with open('db.json', 'r') as f:
+        data = json.load(f)
+
     for key in data:
-        # add a separator between each resource
         print(f"\n\033[1m\033[4m{key.upper()}\033[00m")
         # GET with blue
         print(f"{printColor('GET', '34')} http://localhost:{os.getenv('PORT')}/{key}")
@@ -42,6 +42,10 @@ with open('db.json', 'r') as f:
         print(f"{printColor('PUT', '33')} /{key}")
         # print delete with red
         print(f"{printColor('DELETE', '31')} /{key}")
+
+except FileNotFoundError:
+    print("json data not found")
+    exit()
 
 
 @app.route('/<resource>', methods=['GET'])
