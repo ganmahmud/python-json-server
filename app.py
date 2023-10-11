@@ -39,7 +39,7 @@ with open('db.json', 'r') as f:
         # add a separator between each resource
         print(f"\n\033[1m\033[4m{key.upper()}\033[00m")
         # GET with blue
-        print(f"{printColor('GET', '34')} /{key}")
+        print(f"{printColor('GET', '34')} http://localhost:{os.getenv('PORT')}/{key}")
         # POST with green
         print(f"{printColor('GET', '34')} /{key}/<id>")
         print(f"{printColor('POST', '32')} /{key}")
@@ -64,7 +64,7 @@ def get_resource_by_id_with_children(resource, id):
     if resource in data:
         for item in data[resource]:
             if item['id'] == int(id):
-                print(request.args.get('child'))
+                # print(request.args.get('child'))
                 if 'child' in request.args:
                     child = request.args.get('child')
                     if child in data:
@@ -82,20 +82,13 @@ def get_resource_by_id_with_children(resource, id):
     else:
         return jsonify({"error": f"{resource} not found"}), 404
 
-# To include children resources, add child resource name after parent resource name and id
-# GET /posts/1?child=comments
-# @app.route('/<resource>/<id>', methods=['GET'])
-
 
 @app.route('/<resource>', methods=['POST'])
 def create_resource(resource):
-    if resource in data:
-        return jsonify({"error": f"{resource} already exists"}), 400
-    else:
-        data[resource] = request.json
-        with open('data.json', 'w') as f:
-            json.dump(data, f, indent=4)
-        return jsonify(data[resource]), 201
+    data[resource].append(request.json)
+    with open('db.json', 'w') as f:
+        json.dump(data, f, indent=4)
+    return jsonify(data[resource]), 201
 
 @app.route('/<resource>', methods=['PUT'])
 def update_resource(resource):
