@@ -129,15 +129,16 @@ def patch_resource(resource, id):
         return jsonify({"error": f"{resource} not found"}), 404
 
 
-@app.route('/<resource>', methods=['DELETE'])
-def delete_resource(resource):
-    if resource in data:
-        del data[resource]
+@app.route('/<resource>/<id>', methods=['DELETE'])
+def delete_resource(resource, id):
+    needle = findIndexById(data[resource], int(id))
+    if needle is not None:
+        del data[resource][needle]
         with open('db.json', 'w') as f:
             json.dump(data, f, indent=4)
-        return jsonify({"message": "Resource deleted"})
+        return jsonify({"message": f"{resource} deleted"}), 200
     else:
-        return jsonify({"error": "Resource not found"}), 404
+        return jsonify({"error": f"{resource} not found"}), 404
 
 
 
