@@ -11,6 +11,12 @@ def removeLog():
     logging.getLogger('werkzeug').setLevel(logging.ERROR)
     sys.modules['flask.cli'].show_server_banner = lambda *x: None
 
+def findIndexById(resourceList, id):
+    for index, item in enumerate(resourceList):
+        if item.get("id") == id:
+            return index
+    return None
+
 # create a function that prints message in given hex color in the terminal
 def printColor(message, color):
     return (f"\033[{color}m{message}\033[00m")
@@ -47,7 +53,6 @@ with open('db.json', 'r') as f:
         print(f"{printColor('PUT', '33')} /{key}")
         # print delete with red
         print(f"{printColor('DELETE', '31')} /{key}")
-
 
 
 
@@ -90,21 +95,45 @@ def create_resource(resource):
         json.dump(data, f, indent=4)
     return jsonify(data[resource]), 201
 
-@app.route('/<resource>', methods=['PUT'])
-def update_resource(resource):
-    if resource in data:
-        data[resource] = request.json
-        with open('data.json', 'w') as f:
+@app.route('/<resource>/<id>', methods=['PUT'])
+def update_resource(resource, id):
+    # first check if the id exists
+    needle = findIndexById(data[resource], int(id))
+    if needle is not None:
+        data[resource][needle] = request.json
+        with open('db.json', 'w') as f:
             json.dump(data, f, indent=4)
-        return jsonify(data[resource])
+        return jsonify(data[resource][needle])
     else:
-        return jsonify({"error": "Resource not found"}), 404
+        return jsonify({"error": f"{resource} not found"}), 404
+
+
+@app.route('/<resource>/<id>', methods=['PATCH'])
+def patch_resource(resource, id):
+    # First, check if the ID exists
+    needle = findIndexById(data[resource], int(id))
+    
+    if needle is not None:
+        updated_data = request.json
+        itemTobePatched = data[resource][needle]
+        for key in updated_data:
+            itemTobePatched[key] = updated_data[key]
+        
+        data[resource][needle] = itemTobePatched
+        
+        with open('db.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        
+        return jsonify(data[resource][needle])
+    else:
+        return jsonify({"error": f"{resource} not found"}), 404
+
 
 @app.route('/<resource>', methods=['DELETE'])
 def delete_resource(resource):
     if resource in data:
         del data[resource]
-        with open('data.json', 'w') as f:
+        with open('db.json', 'w') as f:
             json.dump(data, f, indent=4)
         return jsonify({"message": "Resource deleted"})
     else:
