@@ -17,25 +17,14 @@ def findIndexById(resourceList, id):
             return index
     return None
 
-# create a function that prints message in given hex color in the terminal
 def printColor(message, color):
     return (f"\033[{color}m{message}\033[00m")
-
-# create HTTP Status enum
-
 
 load_dotenv()
 
 app = Flask(__name__)
 
 
-
-
-
-# log_format = "%(asctime)s - %(levelname)s - %(message)s"
-# removeLog()
-# log_format = "%(message)s"
-# logging.basicConfig(level=logging.INFO, format=log_format)
 print(f"Running JSON-SERVER on port {os.getenv('PORT')}")
 
 with open('db.json', 'r') as f:
@@ -53,8 +42,6 @@ with open('db.json', 'r') as f:
         print(f"{printColor('PUT', '33')} /{key}")
         # print delete with red
         print(f"{printColor('DELETE', '31')} /{key}")
-
-
 
 
 @app.route('/<resource>', methods=['GET'])
@@ -82,7 +69,6 @@ def get_resource_by_id_with_children(resource, id):
                         return jsonify({"error": f"{child} not found"}), 404
                 else:
                     return jsonify(item)
-        # Resource - use the param value not found
         return jsonify({"error": f"{resource} not found"}), 404
     else:
         return jsonify({"error": f"{resource} not found"}), 404
