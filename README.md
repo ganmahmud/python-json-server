@@ -42,3 +42,25 @@ Your server will be running at `http://localhost:<PORT>` where <PORT> is the por
     - PUT: http://localhost:<PORT>/posts/1 (with a JSON payload)
     - PATCH: http://localhost:<PORT>/posts/1 (with a JSON payload)
     - DELETE: http://localhost:<PORT>/posts/1
+
+## Future Plans / Roadmap
+
+This section outlines the upcoming features and improvements planned for this project. Feel free to contribute, suggest ideas, or work on any of these tasks. Check the boxes as items are completed.
+
+- [ ] **Finding Records by Specific Field Value**: Implement the ability to find records by a specific field value.
+
+- [ ] **Limit and Skip**: Add support for limiting and skipping records for paginated results.
+
+- [ ] **Sorting**: Enable the sorting of records based on specific fields.
+
+- [ ] **Group By**: Implement grouping of records based on a particular field.
+
+### How to Contribute
+
+If you're interested in working on any of the above tasks or have your ideas to add to the roadmap, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your work: `git checkout -b feature/your-feature-name`.
+3. Implement your changes.
+4. Test thoroughly and ensure that the code meets our coding standards.
+5. Submit a pull request for review.
